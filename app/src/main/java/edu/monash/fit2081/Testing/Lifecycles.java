@@ -2,6 +2,7 @@ package edu.monash.fit2081.Testing;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -13,7 +14,10 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
+import android.app.Fragment;
 import java.io.IOException;
+
+import static android.app.PendingIntent.getActivity;
 
 
 //!!! read  http://developer.android.com/training/basics/activity-lifecycle/recreating.html
@@ -21,6 +25,8 @@ public class Lifecycles extends Activity {
     public static final String TAG = "LIFE_CYCLE_TRACING";
     public static final String SP_FILE_NAME = "Testing01PreferencesFile";
     public static final String EXTRA_DATA_1 = "ExtrasData";
+    public static final String NONVIEWSTATE = "NONVIEWSTATE";
+    public static final String PERSISTENT = "PERSISTENT";
 
     private EditText viewDataEditText;
     private EditText nonViewDataEditText;
@@ -40,6 +46,10 @@ public class Lifecycles extends Activity {
         nonViewDataEditText.setShowSoftInputOnFocus(false);
         persistentDataEditText = (EditText) findViewById(R.id.persistentDataEditText);
         persistentDataEditText.setShowSoftInputOnFocus(false);
+
+        if (savedInstanceState!=null){
+            nonViewState=savedInstanceState.getString(NONVIEWSTATE);
+        }
 
     }
 
@@ -78,6 +88,13 @@ public class Lifecycles extends Activity {
     protected void onSaveInstanceState(Bundle outState) {
 
         Log.i(TAG, "onSaveInstanceState");
+        EditText editText=(EditText) findViewById(R.id.viewDataEditText);
+        EditText editText1=(EditText) findViewById(R.id.nonViewDataEditText);
+        String text=editText.getText().toString();
+        outState.putString(TAG,text);
+        nonViewState=editText1.getText().toString();
+        outState.putString(NONVIEWSTATE,nonViewState);
+        super.onSaveInstanceState(outState);
 
     }
 
@@ -85,7 +102,14 @@ public class Lifecycles extends Activity {
     protected void onRestoreInstanceState(Bundle inState) {
 
         Log.i(TAG, "onRestoreInstanceState");
+//        super.onRestoreInstanceState(inState);
+        String text=inState.getString(TAG);
 
+        EditText editText=(EditText) findViewById(R.id.viewDataEditText);
+        EditText editText1=(EditText) findViewById(R.id.nonViewDataEditText);
+        editText1.setText(nonViewState);
+
+        editText.setText(text);
     }
 
 
@@ -174,10 +198,18 @@ public class Lifecycles extends Activity {
     //==============================================================================================
 
     private void saveSharedPreferences(){
-
+            EditText editText=(EditText) findViewById(R.id.persistentDataEditText);
+            String text=editText.getText().toString();
+            SharedPreferences sharedPreferences=getPreferences(MODE_PRIVATE);
+        SharedPreferences.Editor editor=sharedPreferences.edit();
+        editor.putString(PERSISTENT,text);
+        editor.commit();
     }
 
     private void restoreSharedPreferences(){
+        SharedPreferences sharedPreferences=getPreferences(MODE_PRIVATE);
+        String text=sharedPreferences.getString(PERSISTENT,"aa");
+        persistentState=text;
 
     }
 
